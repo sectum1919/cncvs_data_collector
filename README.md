@@ -20,5 +20,5 @@ According to my own experience, videos in "News 30 minutes" consist of a shot fr
 
 ## Contact
 
-My email: chenc21@tsinghua.edu.cn
+My email: chenc21@mails.tsinghua.edu.cn
 CSLT web: cslt.org
