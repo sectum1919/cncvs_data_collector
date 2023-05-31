@@ -1,0 +1,10 @@
+dlib==19.24.0
+numpy==1.23.2
+opencv_contrib_python==4.6.0.66
+opencv_python==4.6.0.66
+pydub==0.25.1
+python_speech_features==0.6
+scipy==1.9.0
+torch==1.12.1
+torchvision==0.13.1
+tqdm==4.64.0

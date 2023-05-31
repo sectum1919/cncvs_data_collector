@@ -3,62 +3,71 @@
  # @Author: chenchen2121 c-c14@tsinghua.org.cn
  # @Date: 2022-07-24 11:03:25
  # @LastEditors: chenchen c-c14@tsinghua.org.cn
- # @LastEditTime: 2022-10-22 11:24:14
+ # @LastEditTime: 2023-05-31 18:00:14
  # @Description: 
  # 
 ### 
 set -e
 
+# 0. config your path
+
+# TMP_PATH=/path/to/tmp/
+# JSON_PATH=/path/to/json/
+# SRC_VIDEO_PATH=/path/to/videos/src/
+# TMP_VIDEO_PATH=/path/to/videos/tmp/
+# DST_VIDEO_PATH=/path/to/videos/dst/
+
+# 1. transcode original video to 25fps
 python transcode.py \
---src-json /work104/cchen/AVMD/selfchildren_metadata.json \
---src-path /work104/cchen/AVMD/selfchildren/ \
---dst-json /work104/cchen/AVMD/selfchildren_metadata_transcoded.json \
---dst-path /work104/cchen/AVMD/selfchildren/ \
+--src-json ${JSON_PATH}metadata.json \
+--src-path ${SRC_VIDEO_PATH} \
+--dst-json ${JSON_PATH}metadata_transcoded.json \
+--dst-path ${TMP_VIDEO_PATH} \
 --worker 1 \
 --loglevel 0
 
-
+# 2. shot segmentation
 python split_video.py \
---src-json /work104/cchen/AVMD/json/selfchildren_fixed_metadata_transcoded.json \
---src-path /work104/cchen/AVMD/selfchildren/_transcoded/ \
---dst-json /work104/cchen/AVMD/json/selfchildren_metadata_shots.json \
+--src-json ${JSON_PATH}metadata_transcoded.json \
+--src-path ${TMP_VIDEO_PATH} \
+--dst-json ${JSON_PATH}metadata_shots.json \
 --type shot \
 --worker 6 \
 --loglevel 0
 
-
+# 3. face detection to remove shot with no face or too many face
 python face_detection.py \
---src-json /work104/cchen/AVMD/json/selfchildren_metadata_shots.json \
---src-path /work104/cchen/AVMD/selfchildren/_transcoded/ \
---dst-json /work104/cchen/AVMD/json/selfchildren_metadata_face.json \
+--src-json ${JSON_PATH}metadata_shots.json \
+--src-path ${TMP_VIDEO_PATH} \
+--dst-json ${JSON_PATH}metadata_face.json \
 --worker 20 \
 --loglevel 0
 
-
+# 4. split video by silence
 python split_video.py \
---src-json /work104/cchen/AVMD/json/talks_metadata_face.json \
---src-path /work104/cchen/AVMD/talks/_transcoded/ \
---dst-json /work104/cchen/AVMD/json/talks_metadata_sentence.json \
+--src-json ${JSON_PATH}metadata_face.json \
+--src-path ${TMP_VIDEO_PATH} \
+--dst-json ${JSON_PATH}metadata_sentence.json \
 --type silence \
 --worker 56 \
 --loglevel 0
 
-
+# 5. face track to extract face ROI
 python face_tracker.py \
---src-json /work104/cchen/AVMD/json/talks_metadata_sentence.json \
---src-path /work104/cchen/AVMD/talks/_transcoded/ \
---dst-json /work104/cchen/AVMD/json/talks_metadata_tracker.json \
+--src-json ${JSON_PATH}metadata_sentence.json \
+--src-path ${TMP_VIDEO_PATH} \
+--dst-json ${JSON_PATH}metadata_tracker.json \
 --worker 24 \
 --sample 0 \
 --loglevel 0
 
-
+# 6. synchronization detection between audio and video, extract final data
 python syncnet_filter.py \
---src-json /work104/cchen/AVMD/json/talks_metadata_tracker.json \
---src-path /work104/cchen/AVMD/talks/_transcoded/ \
---dst-json /work104/cchen/AVMD/json/talks_metadata_syncnet.json \
---dst-path /work104/cchen/AVMD/talks_final/ \
---tmp-dir /work104/cchen/AVMD/data_collector_speech/temp \
+--src-json ${JSON_PATH}metadata_tracker.json \
+--src-path ${TMP_VIDEO_PATH} \
+--dst-json ${JSON_PATH}metadata_syncnet.json \
+--dst-path ${DST_VIDEO_PATH} \
+--tmp-dir ${TMP_PATH} \
 --worker 8 \
 --loglevel 0
 
